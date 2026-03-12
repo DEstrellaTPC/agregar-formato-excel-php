@@ -1,130 +1,72 @@
 
-# Agregar Formato a Tablas HTML Exportadas a Excel (PHP + PhpSpreadsheet)
+# Agregar Formato a Excel (PHP + PhpSpreadsheet)
 
-Este proyecto permite **tomar una tabla HTML enviada mediante POST**, procesarla con **PhpSpreadsheet** y generar un archivo Excel con formateos básicos para mejorar su presentación.
-El objetivo es proporcionar una forma sencilla de **convertir una tabla HTML en un archivo .xlsx con estilos**, sin necesidad de procesar celda por celda manualmente.
+Este proyecto permite **recibir un archivo Excel (.xlsx)** desde un formulario HTML, procesarlo con **PhpSpreadsheet**, aplicar estilos básicos y generar un nuevo archivo Excel con formato mejorado.
+
+El objetivo es proporcionar una forma sencilla de **subir un archivo Excel**, aplicarle formateo automático y descargar la versión estilizada.
 
 ---
-
 ## 🚀 ¿Qué hace este proyecto?
 
-A partir de un formulario donde se envía HTML crudo (una tabla completa), el script:
-
-- Limpia el HTML recibido.
-- Convierte la tabla HTML en un documento de Excel mediante `Html::load()`.
-- Aplica estilos de formato básicos:
-  - Negritas en encabezados
-  - Autoajuste del ancho de columnas
-  - Bordes externos
-  - Alineación
-- Genera y descarga el archivo final `formato_aplicado.xlsx`.
-
-El resultado es un Excel más limpio, legible y presentable.
+1. El usuario **sube un archivo .xlsx** mediante `index.php`.
+2. El archivo se envía a `procesar_excel_html.php`.
+3. El script carga el Excel usando `PhpOffice\PhpSpreadsheet\IOFactory`.
+4. Se aplican estilos automáticos:
+   - Negritas en la primera fila
+   - Autoajuste de columnas
+   - Bordes
+   - Alineaciones
+5. Se genera y descarga un archivo Excel actualizado.
 
 ---
-
 ## 📂 Archivos principales
 
 ### `index.php`
-Formulario HTML minimalista que contiene un `<textarea>` para pegar código HTML (normalmente tablas con `thead` + `tbody`), y lo envía vía POST al procesador.
-
-Incluye:
-- Validación simple
-- Vista previa del contenido enviado
-- Enlace para convertir el HTML en Excel
+Formulario HTML que contiene:
+- Campo `<input type="file">` que permite subir un archivo `.xlsx`
+- Envío mediante POST a `procesar_excel_html.php`
 
 ### `procesar_excel_html.php`
-Script principal que:
-
-1. Recibe el contenido HTML desde `POST["contenido_html"]`.
-2. Utiliza `PhpOffice\PhpSpreadsheet\Reader\Html` para interpretarlo.
-3. Inserta la tabla en un nuevo libro de Excel.
-4. Aplica estilos y autoajustes.
-5. Envía el archivo Excel al navegador con headers correctos.
-
-Fragmento de ejemplo del procesamiento:
-
-```php
-$reader = new Html();
-$spreadsheet = $reader->loadFromString($contenido_html);
-$sheet = $spreadsheet->getActiveSheet();
-
-// Autoajustar columnas
-foreach(range('A', $sheet->getHighestColumn()) as $col) {
-    $sheet->getColumnDimension($col)->setAutoSize(true);
-}
-
-// Encabezados en negritas
-$sheet->getStyle('1:1')->getFont()->setBold(true);
-
-// Generar archivo
-$writer = new Xlsx($spreadsheet);
-$writer->save('php://output');
-```
+Script que:
+1. Recibe el archivo subido en `$_FILES`.
+2. Lo carga con `IOFactory::load()`.
+3. Obtiene la hoja activa.
+4. Aplica estilos según las reglas del proyecto.
+5. Descarga el nuevo archivo.
 
 ---
-
 ## ▶️ Cómo usarlo
 
 ### 1) Instalar dependencias
-
 ```bash
 composer require phpoffice/phpspreadsheet
 ```
 
 ### 2) Requisitos
-
-- PHP 8.1 o superior
+- PHP 8.1+
 - Extensiones: `zip`, `xml`, `mbstring`
 
 ### 3) Ejecutar
-
-1. Subir el proyecto a un servidor con PHP.
-2. Abrir `index.php` en el navegador.
-3. Pegar una tabla HTML como:
-
-```html
-<table>
-  <thead>
-    <tr><th>Producto</th><th>Precio</th></tr>
-  </thead>
-  <tbody>
-    <tr><td>Café</td><td>35</td></tr>
-    <tr><td>Pan</td><td>12</td></tr>
-  </tbody>
-</table>
-```
-
-4. Hacer clic en **"Procesar Excel"** para descargar el `.xlsx` formateado.
+1. Subir proyecto a un servidor PHP.
+2. Abrir `index.php`.
+3. Seleccionar un archivo `.xlsx`.
+4. Descargar archivo procesado.
 
 ---
-
 ## 📑 Estructura del proyecto
-
 ```
 agregar-formato-excel-php/
 ├── index.php
 ├── procesar_excel_html.php
-├── vendor/ (generado por Composer)
+├── vendor/ (Composer)
 └── README.md
 ```
 
 ---
-
-## 🧩 Limitaciones conocidas
-
-- Procesa una tabla HTML por ejecución.
-- `rowspan`/`colspan` complejos pueden no preservarse.
-- Los estilos aplicados son básicos, pero pueden ampliarse.
+## 🧩 Limitaciones
+- Procesa solo una hoja a la vez, salvo modificaciones.
+- Estilos básicos pero expandibles.
 
 ---
-
-## 🤝 Contribuciones
-
-PRs y sugerencias son bienvenidos.
-
----
-
 ## 📄 Licencia
-
 MIT
